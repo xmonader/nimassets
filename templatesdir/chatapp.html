@@ -1,0 +1,219 @@
+{% extends "index.html" %}
+
+
+{% block content %}
+    <div id="container">
+            <div id="chatcontainer">
+            </div>
+
+        <script>
+                webix.ready(function() {
+
+                        let toolbar = {
+                            rows: [
+                                {
+                                    view: "toolbar", height: 100, elements:[
+                                        {view: "label", label: "<span style='font-size: 18px;'>Webix 0-Chat</span>"},
+                                    ]
+                                },
+                           ]
+                        };
+                        let txtmsg = {
+                            view: "toolbar",
+                            elements: [
+
+                                {
+                                    id:'txtMsg',
+                                    view:'text',
+                                    name:'txtMsg',
+                                },
+                                {
+                                    view:'button',
+                                    id:'btnSendMsg',
+                                    value:'Send',
+                                    type:'standard',
+                                    click: function(){
+                                        console.log('btnSend is clicked.');
+                                        sendChatMsg();
+                                    }
+                                }
+                            ]
+                        };
+                        let roomsPane = {
+                            rows:[
+                                {
+                                    view: 'list',
+                                    labelAlign:'right',
+                                    height:500,
+                                    width: 200,
+                                    id: 'listChatRooms',
+                                    select:true
+                                },
+                                {id:'txtUsername', view:'text', name:'txtUsername'},
+                            ]
+                        }
+
+                        let leftpane = {
+                            rows: [
+                                { 
+                                    view: "list", 
+                                    labelAlign: "right", 
+                                    height: 500, 
+                                    width: 400,
+                                    value: "",
+                                    id: "listChats"
+                                },         
+                            ]
+                        };
+                        //maybe it's better to allow it as a popup
+                        let rightpane = {
+                            rows:[
+                                { 
+                                    view: "template", 
+                                    template: "Text to be shown",
+                                    id: "formsPane",
+                                    width:400,
+                                },
+                            ]
+                        };
+                        let hbox = {
+                            cols: [
+                                leftpane,
+                                rightpane
+                            ] 
+                        }
+                        let vbox = {
+                            rows: [
+                                hbox,
+                                txtmsg,
+                            ]
+                        }
+                        webix.ui({
+                            cols:[
+                                roomsPane,
+                                vbox
+                            ]                            
+                        });
+
+                        webix.UIManager.addHotKey("Enter", sendChatMsg,[]);
+                        webix.UIManager.setFocus($$("txtMsg"));
+
+                        let roomslistendpoint = "/rooms";
+                        $.ajax(
+                            {
+                                type: "GET",
+                                url:roomslistendpoint,
+                                success: function(data){
+                                    console.log("DATA: " + data);
+                                    for (let k of data){
+                                        console.log("ADDING K: ", k);
+                                        $$("listChatRooms").add(
+                                        {
+                                            id: k,
+                                            value:k
+                                        },0);
+                                    }
+                                    // select the firstone by default.
+                                    $$('listChatRooms').select(parsed[0]); 
+
+                                    $$('listChatRooms').refresh(); 
+                                }
+                            }
+                        )
+                        
+
+                        sock.onmessage = function(m){
+
+
+                            const data = JSON.parse(m.data);
+                            const msg = data['msg_body'];
+                            const type =  data['type'];
+                            console.log("RECEIVED MSG: ", msg, type);
+                            // gun.get('0chat').set(msg);
+                            if (type === "html") {
+                                $$('formsPane').setHTML(msg);
+                            }else {
+                                $$("listChats").add(
+                                {
+                                    value: msg
+                                }, 0
+                            );
+                            $$('listChats').refresh();
+                            }
+                        }
+
+                $$('listChatRooms').attachEvent('onAfterSelect', (selectedRoom) =>{
+                    console.log("NEW ID: ", selectedRoom);
+                    fetch(`/room/${selectedRoom}`)
+                        .then( (resp) => {
+                            console.log("Data:", resp);
+                            return resp.json()
+                        }).then( jsonData => {
+                                console.log("******DATA: ", jsonData);
+                                console.log("Chatroom changed to: ", selectedRoom); 
+                                for (const [k, v] of Object.entries(jsonData)){
+                                    console.log("K: ", k, " V: ", v);
+                                    // {mid}:{room}:{sender_id}:{msg_type}:{msg_body}:{msg_time}"
+                                    let {mid, room, sender_id, msg_type, msg_time} = k.split(":")
+                                    console.log("O is : ", k, v)
+                                    let parsedMsg = JSON.parse(v);
+                                    $$("listChats").add(
+                                    {
+
+                                        value:`${sender_id} said: ${parsedMsg['msg_body']}`
+                                    },0);
+                                } 
+                            })    
+                        
+                })
+
+                function sendChatMsg() {
+                    // let sender_id = $$('txtUsername').data.value;
+                    let sender_id = $$('txtUsername').data.value;
+                    let msg_body = $$('txtMsg').data.value;
+                    let roomname = $$('listChatRooms').getSelectedId();
+                    let message = {sender_id:sender_id, msg_body:msg_body, msg_type:'plain', room:roomname};
+                    sock.send(JSON.stringify(message));
+                    // gun.get('0chat-tmp').set(m);
+                    console.log("IN SENDCHAT MSG:  "+ JSON.stringify(message));
+                    console.log("DONE SET IN gun");
+                    $('#txtMsg').val("");
+                    
+                    // $$("listChats").add(
+                    //     {
+                    //         value: m
+                    //     }, 0
+                    // );
+                    // $$('listChats').refresh();
+                    
+                }
+
+                
+                });
+
+
+
+
+
+
+
+
+
+
+
+
+                // reload all
+                // gun.map().on(function(msg, id){
+                //     $$("listChats").add(
+                //         {
+                //             id: id,
+                //             value:msg
+                //         }
+                //     )
+				// });
+
+
+            </script>
+
+</div>
+{% endblock %}

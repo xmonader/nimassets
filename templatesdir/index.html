@@ -1,0 +1,62 @@
+<!doctype html>
+<head>
+<meta charset="utf-8">
+<title>{% block title %}{% endblock %}</title>
+
+
+<link rel="stylesheet" href="http://cdn.webix.com/edge/webix.css" type="text/css"> 
+
+<link href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+<script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js" integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl" crossorigin="anonymous"></script>
+<script src="https://cdn.jsdelivr.net/npm/jquery/dist/jquery.min.js"></script>
+<script type="text/javascript" src="/static/js/webix/webix/webix.js"></script>
+<link href="text/javascript" src="/static/js/webix/webix/webix.css"></script>
+<script src="https://cdn.rawgit.com/amark/gun/master/gun.js"></script>
+<script>
+                var gun = Gun('https://gunjs.herokuapp.com/gun');
+                var sock = new WebSocket("ws://localhost:8000/dispatch");
+                sock.onopen = function(){
+                    console.log("Opened a connection..");
+                };
+
+
+</script>
+
+</head>
+<body>
+
+  <!-- Wrap all page content here -->
+  <div id="wrap">
+
+    <!-- Fixed navbar -->
+    <div class="navbar navbar-default navbar-fixed-top">
+      <div class="container">
+        <div class="navbar-header">
+          <button type="button" class="navbar-toggle" data-toggle="collapse" data-target=".navbar-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+          <a class="navbar-brand" href="/">0Chat-Webix</a>
+        </div>
+      </div>
+    </div>
+
+    <!-- Begin page content -->
+    <main id="content" role="main" class="container">
+
+      {% block content %}{% endblock %}
+      
+    </main>
+
+  </div>
+
+  <div id="footer">
+    <div class="container">
+      <p>Your Company &copy; All Rights Reserved.</p>
+      {% block footer %}{% endblock %}
+    </div>
+  </div>
+
+</body>
+</html>
