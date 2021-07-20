@@ -4,7 +4,7 @@ nimassets `Nim Assets` is heavily inspired by [go-bindata](https://github.com/jt
 
 ## Usage
 ```bash
-nimassets 0.1.0 (Bundle your assets into nim file)
+nimassets 0.2.0 (Bundle your assets into nim file)
     -h | --help         : show help
     -v | --version      : show version
     -o | --output       : output filename
@@ -14,8 +14,9 @@ nimassets 0.1.0 (Bundle your assets into nim file)
 
 ### Bundle
 
-To bundle all the files in directory `templatesdir` into single nim file `assetsfile.nim`
+To bundle all the files in directory `templatesdir` from the `examples` folder into single nim file `assetsfile.nim`
 ```bash
+cd examples
 nimassets -d=templatesdir -o=assetsfile.nim
 ```
 
@@ -25,7 +26,12 @@ nimassets -d=templatesdir -o=assetsfile.nim
 
 ### Use Assets
 ```
-import assetsfile
+import assetsfile # name from -o=<filename>
 
 echo assetsfile.getAsset("templatesdir/index.html")
 ```
+
+### Development
+To run tests, simply do `nimble test` from the root of this repository.
+
+To compile the distributable binary, run `nimble assetsBin`. It will be built and available in `./build/nimassets`.
