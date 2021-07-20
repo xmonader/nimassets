@@ -1,24 +1,33 @@
 # Package
 
-version       = "0.1.0"
+version       = "0.2.0"
 author        = "xmonader"
 description   = "bundle your assets to a nim"
 license       = "MIT"
 srcDir        = "src"
+binDir        = "build"
 bin           = @["nimassets"]
+skipDirs      = @["examples", "tests"]
 
 
 # Dependencies
 
-requires "nim >= 0.19.0"
+requires "nim >= 1.4.0"
+
+proc build() =
+  exec "nimble build --threads:on -d:release"
 
 task assetsBin, "Build nimassets":
-    exec "nimble build --threads:on"
+  build()
 
 task buildTemplates, "bundle templates in templatesdir":
-    # exec "nimble assetsBin"
-    exec "nimassets -d=templatesdir -o=assetsfile.nim"
+  build()
+  exec "./build/nimassets -d=examples/templatesdir -o=examples/assetsfile.nim"
 
 task buildTemplatesFast, "bundle templates in templatesdir fast":
-    # exec "nimble assetsBin"
-    exec "nimassets -d=templatesdir -o=assetsfilefast.nim -f"
+  build()
+  exec "./build/nimassets -d=examples/templatesdir -o=examples/assetsfilefast.nim -f"
+
+before test:
+  build()
+  exec "./build/nimassets -d:tests/testassets -o:tests/assetfile.nim"
