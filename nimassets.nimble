@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.2.0"
+version       = "0.2.1"
 author        = "xmonader"
 description   = "bundle your assets to a nim"
 license       = "MIT"
@@ -31,3 +31,4 @@ task buildTemplatesFast, "bundle templates in templatesdir fast":
 before test:
   build()
   exec "./build/nimassets -d:tests/testassets -o:tests/assetfile.nim"
+  exec "./build/nimassets --fast -d:tests/testassets -o:tests/assetfile_fast.nim"

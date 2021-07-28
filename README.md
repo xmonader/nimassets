@@ -4,7 +4,7 @@ nimassets `Nim Assets` is heavily inspired by [go-bindata](https://github.com/jt
 
 ## Usage
 ```bash
-nimassets 0.2.0 (Bundle your assets into nim file)
+nimassets 0.2.1 (Bundle your assets into nim file)
     -h | --help         : show help
     -v | --version      : show version
     -o | --output       : output filename

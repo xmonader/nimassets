@@ -14,7 +14,7 @@ const buildCommit* = staticExec("git rev-parse HEAD")  ## \
 # const latestTag* = staticExec("git describe --abbrev=0 --tags") ## \
 ## `latestTag` latest tag on this branch
 
-const versionString* = &"0.2.0 ({buildBranchName}/{buildCommit})"
+const versionString* = &"0.2.1 ({buildBranchName}/{buildCommit})"
 
 const assetsFileHeader = """
 import tables, base64
@@ -29,7 +29,7 @@ proc getAsset*(path: string): string =
 proc handleFile(path: string): string {.thread.} =
   var val, valString: string
   val = readFile(path).encode()
-  valString = " \"\"\"" & val & "\"\"\" "
+  valString = "\"\"\"" & val & "\"\"\""
   result = &"""assets["{path}"] = {valString}""" & "\n\n"
 
 proc generateDirAssetsSimple*(dir: string): string =
