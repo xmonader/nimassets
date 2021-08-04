@@ -1,2 +1,2 @@
 build
-tests/assetfile.nim
+tests/assetfile*.nim
