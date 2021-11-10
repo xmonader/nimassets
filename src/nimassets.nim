@@ -1,4 +1,5 @@
 import
+  distros,
   os,
   strformat,
   strutils,
@@ -31,7 +32,10 @@ proc handleFile(path: string): string {.thread.} =
   var val, valString: string
   val = readFile(path).encode()
   valString = "\"\"\"" & val & "\"\"\""
-  result = &"""assets["{escape(path, prefix="", suffix="")}"] = {valString}""" & "\n\n"
+  if detectOs(Windows):
+    result = &"""assets["{escape(path, prefix="", suffix="")}"] = {valString}""" & "\n\n"
+  else:
+    result = &"""assets["{path}"] = {valString}""" & "\n\n"
 
 proc generateDirAssetsSimple*(dir: string): string =
   for path in expandTilde(dir).walkDirRec():
