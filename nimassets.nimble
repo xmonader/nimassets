@@ -13,6 +13,7 @@ skipDirs      = @["examples", "tests"]
 # Dependencies
 
 requires "nim >= 1.4.0"
+requires "zstd >= 0.5.0"
 
 proc build() =
   exec "nimble build --threads:on -d:release"
