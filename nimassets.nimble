@@ -1,6 +1,6 @@
 # Package
 
-version       = "0.2.1"
+version       = "0.2.3"
 author        = "xmonader"
 description   = "bundle your assets to a nim"
 license       = "MIT"
