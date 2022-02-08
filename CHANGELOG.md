@@ -9,7 +9,7 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## Fixed
 
- - Fixed Issue #6 with `when defined(windows)` instead using `distros.detectOs(Windows)`.
+ - Fixed Issue #6 with `when defined(windows)` instead of using `distros.detectOs(Windows)`.
 
 ## Changed
 
