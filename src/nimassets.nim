@@ -1,5 +1,4 @@
 import
-  distros,
   os,
   strformat,
   strutils,
@@ -11,13 +10,13 @@ import
 
 const buildBranchName* = staticExec("git rev-parse --abbrev-ref HEAD") ## \
   ## `buildBranchName` branch zos is built from
-const buildCommit* = staticExec("git rev-parse HEAD")  ## \
+const buildCommit* = staticExec("git rev-parse HEAD") ## \
   ## `buildCommit` commit zos is built from
 
 # const latestTag* = staticExec("git describe --abbrev=0 --tags") ## \
 ## `latestTag` latest tag on this branch
 
-const versionString* = &"0.2.2 ({buildBranchName}/{buildCommit})"
+const versionString* = &"0.2.3 ({buildBranchName}/{buildCommit})"
 
 const assetsFileHeaderBinary = """
 import tables
@@ -50,7 +49,7 @@ func toByteSeq(str: string): seq[byte] {.inline.} =
     result = newSeq[byte](length)
     copyMem(result[0].unsafeAddr, str[0].unsafeAddr, length)
 
-proc getAssetToByteSeq*(path: string): string =
+proc getAssetToByteSeq*(path: string): seq[byte] =
   result = toByteSeq (getAsset path)
 
 """
@@ -101,8 +100,8 @@ type DataType = enum
   tZstd = 3
   tBase64Zstd = 4
 
-var dataType : DataType = tBase64
-var compressLevel : int = 3
+var dataType: DataType = tBase64
+var compressLevel: int = 3
 
 proc byteArrayToString(bytes: openArray[byte]): string =
   result = newString(bytes.len)
@@ -121,7 +120,7 @@ proc handleFile(path: string): string {.thread.} =
   stdout.write fmt"{path} ... "
   case dataType
   of tBinary:
-    let file : File = open(path)
+    let file: File = open(path)
     var input = newSeq[byte](file.getFileSize())
     discard file.readBytes(input, 0, file.getFileSize())
     file.close()
@@ -135,13 +134,13 @@ proc handleFile(path: string): string {.thread.} =
     val = readFile(path).encode()
     valString = "\"\"\"" & val & "\"\"\""
   of tZstd:
-    let file : File = open(path)
+    let file: File = open(path)
     var input = newSeq[byte](file.getFileSize())
     discard file.readBytes(input, 0, file.getFileSize())
     file.close()
 
     stdout.write fmt"zstd-level:{compressLevel} ... "
-    let compressed = compress(input, level=compressLevel)
+    let compressed = compress(input, level = compressLevel)
 
     stdout.write "build_string ... "
     valString = "@[byte "
@@ -152,16 +151,16 @@ proc handleFile(path: string): string {.thread.} =
         valString &= fmt"0x{toHex(b)}]"
   of tBase64Zstd:
     # zstd -> byteArrayToString -> base64
-    let file : File = open(path)
+    let file: File = open(path)
     var input = newSeq[byte](file.getFileSize())
     discard file.readBytes(input, 0, file.getFileSize())
     file.close()
 
-    val = byteArrayToString(compress(input, level=compressLevel)).encode()
+    val = byteArrayToString(compress(input, level = compressLevel)).encode()
     stdout.write fmt"zstd-level:{compressLevel} ... "
     valString = "\"\"\"" & val & "\"\"\""
 
-  if detectOs(Windows):
+  when defined(windows):
     result = &"""assets["{escape(path, prefix="", suffix="")}"] = {valString}""" & "\n\n"
   else:
     result = &"""assets["{path}"] = {valString}""" & "\n\n"
@@ -183,9 +182,10 @@ proc generateDirAssetsSpawn*(dir: string): string =
 # TODO: checks async implementation sometime later..
 
 
-proc createAssetsFile*(dirs:seq[string], outputfile="assets.nim", fast=false, compress=false) =
+proc createAssetsFile*(dirs: seq[string], outputfile = "assets.nim",
+    fast = false, compress = false) =
   var
-    generator: proc(s:string): string
+    generator: proc(s: string): string
     data =
       case dataType
       of tBinary: assetsFileHeaderBinary
@@ -221,7 +221,7 @@ proc writeVersion() =
 
 proc cli*() =
   var
-    compress, fast : bool = false
+    compress, fast: bool = false
     dirs = newSeq[string]()
     output = "assets.nim"
 
@@ -234,13 +234,13 @@ proc cli*() =
       of cmdLongOption, cmdShortOption:
         case key
           of "help", "h":
-              writeHelp()
-              quit()
+            writeHelp()
+            quit()
           of "version", "v":
-              writeVersion()
-              quit()
+            writeVersion()
+            quit()
           # of "compress", "c": compress= true
-          of "type", "t": 
+          of "type", "t":
             case val
             of "binary":
               dataType = tBinary
