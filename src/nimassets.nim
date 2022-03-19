@@ -114,7 +114,7 @@ func stringToByteSeq(str: string): seq[byte] {.inline.} =
     result = newSeq[byte](length)
     copyMem(result[0].unsafeAddr, str[0].unsafeAddr, length)
 
-proc handleFile(path: string): string {.thread.} =
+proc handleFile(path: string, isSingleDir: bool): string {.thread.} =
   var val, valString: string
 
   stdout.write fmt"{path} ... "
@@ -160,22 +160,31 @@ proc handleFile(path: string): string {.thread.} =
     stdout.write fmt"zstd-level:{compressLevel} ... "
     valString = "\"\"\"" & val & "\"\"\""
 
+  var pathKey: string
+  var dirSep = "/"
   when defined(windows):
-    result = &"""assets["{escape(path, prefix="", suffix="")}"] = {valString}""" & "\n\n"
+    dirSep = "\\"
+  if isSingleDir:
+    let pathKeyArr = path.split(dirSep)
+    pathKey = pathKeyArr[1 .. pathKeyArr.high].join(dirSep)
+  else: pathKey = path
+
+  when defined(windows):
+    result = &"""assets["{escape(pathKey, prefix="", suffix="")}"] = {valString}""" & "\n\n"
   else:
-    result = &"""assets["{path}"] = {valString}""" & "\n\n"
+    result = &"""assets["{pathKey}"] = {valString}""" & "\n\n"
     stdout.write "ok\n"
 
-proc generateDirAssetsSimple*(dir: string): string =
+proc generateDirAssetsSimple*(dir: string, isSingleDir: bool): string =
   for path in expandTilde(dir).walkDirRec():
     if not isHidden(path):
-      result &= handleFile(path)
+      result &= handleFile(path, isSingleDir)
 
-proc generateDirAssetsSpawn*(dir: string): string =
+proc generateDirAssetsSpawn*(dir: string, isSingleDir: bool): string =
   var results = newSeq[FlowVar[string]]()
   for path in expandTilde(dir).walkDirRec():
     if not isHidden(path):
-      results.add(spawn handleFile(path))
+      results.add(spawn handleFile(path, isSingleDir))
 
   # wait till all of them are done.
   for r in results:
@@ -187,7 +196,7 @@ proc generateDirAssetsSpawn*(dir: string): string =
 proc createAssetsFile*(dirs: seq[string], outputfile = "assets.nim",
     fast = false, compress = false) =
   var
-    generator: proc(s: string): string
+    generator: proc(s: string, isSingleDir: bool): string
     data =
       case dataType
       of tBinary: assetsFileHeaderBinary
@@ -200,8 +209,9 @@ proc createAssetsFile*(dirs: seq[string], outputfile = "assets.nim",
   else:
     generator = generateDirAssetsSimple
 
+  let dirsLen = dirs.len
   for d in dirs:
-    data &= generator(d)
+    data &= generator(d, isSingleDir = (dirsLen == 1))
 
   writeFile(outputfile, data)
 

@@ -22,15 +22,26 @@ cd examples
 nimassets -d=templatesdir -o=assetsfile.nim
 ```
 
+Bundle more than one source directory using multiple `-d` flags
+```bash
+nimassets -d=templatesdir -d=css -d=js -o=assetsfile.nim
+```
+
 `-f` or `--fast` flag can help with large assets directories
 `-t` or `--type` encoding method, default is base64
 
 
 ### Use Assets
-```
+```nim
 import assetsfile # name from -o=<filename>
 
+# Getting file contents from a single directory table
+echo assetsfile.getAsset("index.html")
+
+# Getting file contents from a multi directory table
 echo assetsfile.getAsset("templatesdir/index.html")
+echo assetsfile.getAsset("js/app.min.js")
+echo assetsfile.getAsset("css/app.min.css")
 ```
 
 ### Development
