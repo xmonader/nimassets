@@ -168,12 +168,14 @@ proc handleFile(path: string): string {.thread.} =
 
 proc generateDirAssetsSimple*(dir: string): string =
   for path in expandTilde(dir).walkDirRec():
-    result &= handleFile(path)
+    if not isHidden(path):
+      result &= handleFile(path)
 
 proc generateDirAssetsSpawn*(dir: string): string =
   var results = newSeq[FlowVar[string]]()
   for path in expandTilde(dir).walkDirRec():
-    results.add(spawn handleFile(path))
+    if not isHidden(path):
+      results.add(spawn handleFile(path))
 
   # wait till all of them are done.
   for r in results:
