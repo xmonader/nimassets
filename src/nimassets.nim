@@ -1,12 +1,7 @@
-import
-  os,
-  strformat,
-  strutils,
-  base64,
-  zstd/compress,
-  parseopt,
-  threadpool
-
+import std/[os, strformat, strutils, base64]
+import zstd/compress
+import threadpool
+import parseopt
 
 const buildBranchName* = staticExec("git rev-parse --abbrev-ref HEAD") ## \
   ## `buildBranchName` branch zos is built from
@@ -184,7 +179,7 @@ proc generateDirAssetsSpawn*(dir: string): string =
 # TODO: checks async implementation sometime later..
 
 
-proc createAssetsFile*(dirs: seq[string], outputfile = "assets.nim",
+proc createAssetsFile*(dirs, files: seq[string], outputfile = "assets.nim",
     fast = false, compress = false) =
   var
     generator: proc(s: string): string
@@ -200,6 +195,9 @@ proc createAssetsFile*(dirs: seq[string], outputfile = "assets.nim",
   else:
     generator = generateDirAssetsSimple
 
+  for f in files:
+    data &= handleFile(f)
+
   for d in dirs:
     data &= generator(d)
 
@@ -212,7 +210,8 @@ nimassets {versionString} (Bundle your assets into nim file)
     -h  | --help          : show help
     -v  | --version       : show version
     -o  | --output        : output filename
-    -f  | --fast          : faster generation
+          --fast          : faster generation
+    -f  | --file          : file to include
     -d  | --dir           : dir to include (recursively)
     -t  | --type          : binary | base64 | zstd | base64zstd
     -cl | --compresslevel : compress level for zstd
@@ -224,7 +223,7 @@ proc writeVersion() =
 proc cli*() =
   var
     compress, fast: bool = false
-    dirs = newSeq[string]()
+    dirs, files = newSeq[string]()
     output = "assets.nim"
 
   if paramCount() == 0:
@@ -253,8 +252,9 @@ proc cli*() =
             of "base64zstd":
               dataType = tBase64Zstd
           of "compresslevel", "cl": compressLevel = parseInt(val)
-          of "fast", "f": fast = true
+          of "fast": fast = true
           of "dir", "d": dirs.add(val)
+          of "file", "f": files.add(val)
           of "output", "o": output = val
           else:
             discard
@@ -266,7 +266,7 @@ proc cli*() =
       echo &"[-] Directory doesnt exist: '{directory}'"
       quit 2 # 2 means dir doesn't exist.
   # echo fmt"compress: {compress} fast: {fast} dirs:{dirs} output:{output}"
-  createAssetsFile(dirs, output, fast, compress)
+  createAssetsFile(dirs, files, output, fast, compress)
 
 when isMainModule:
   cli()
